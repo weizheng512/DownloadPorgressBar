@@ -393,26 +393,20 @@ public class DownLoadProgressBar extends View implements View.OnClickListener {
         mOnProgressListener = onProgressListener;
     }
 
+    /**
+     * 设置当前的进度
+     * @param currentProgress
+     */
+    public void setProgress(int currentProgress) {
+        this.mCurrentProgress = currentProgress;
+    }
 
-
-    /*@Override
-    public boolean onTouchEvent(MotionEvent event) {
-        int x = (int) event.getX();
-        int y = (int) event.getY();
-        int action = event.getAction();
-        switch (action) {
-            case MotionEvent.ACTION_DOWN:
-                if (mCurrentStatus==STATUS_INIT)
-
-
-                break;
-            case MotionEvent.ACTION_MOVE:
-                break;
-            case MotionEvent.ACTION_UP:
-                break;
-        }
-        return true;
-    }*/
-
+    /**
+     * 设置最大进度
+     * @param maxProgress
+     */
+    public void setMaxProgress(int maxProgress) {
+        mMaxProgress = maxProgress;
+    }
 
 }
