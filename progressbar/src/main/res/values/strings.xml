@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Progressbar</string>
+
+    <string name="downloading">下载中 %1$d %%</string>
+    <string name="installing">安装中..</string>
+    <string name="install">安装</string>
+    <string name="open">打开</string>
+    <string name="download">下载</string>
+    <string name="stop">继续下载 %1$d %%</string>
+</resources>
