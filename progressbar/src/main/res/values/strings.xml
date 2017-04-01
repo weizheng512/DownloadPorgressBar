@@ -6,5 +6,7 @@
     <string name="install">安装</string>
     <string name="open">打开</string>
     <string name="download">下载</string>
+    <string name="download_complete">下载完成</string>
     <string name="stop">继续下载 %1$d %%</string>
+
 </resources>

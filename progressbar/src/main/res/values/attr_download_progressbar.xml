@@ -19,4 +19,6 @@
     </declare-styleable>
 
 
+    <color name="change_color">#198cec</color>
+    <color name="origin_color">#efefef</color>
 </resources>

@@ -7,8 +7,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.os.Handler;
-import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
@@ -64,10 +62,10 @@ public class DownLoadProgressBar extends View implements View.OnClickListener {
     private final int default_text_size = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
             24, getResources().getDisplayMetrics());
     /**
-     * 默认中间矩形的高度 80dp
+     * 默认中间矩形的高度 60dp
      */
     private final int default_height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-            80, getResources().getDisplayMetrics());
+            60, getResources().getDisplayMetrics());
     /**
      * 默认中间矩形的宽度 100dp
      */
@@ -114,16 +112,12 @@ public class DownLoadProgressBar extends View implements View.OnClickListener {
      */
     private Paint mProgressbarPaint;
 
-//    private Paint mLayerUpPaint;
-
     private RectF mRectF;
     private Rect mRect;
     private int mTotalHeight;
     private int mRadius;
     private int mCurrentStatus;
     private Context mContext;
-    private boolean isDownloading;
-    private OnProgressListener mOnProgressListener;
 
     public DownLoadProgressBar(Context context) {
         this(context, null);
@@ -135,14 +129,20 @@ public class DownLoadProgressBar extends View implements View.OnClickListener {
 
     public DownLoadProgressBar(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init(context, attrs, defStyleAttr);
+        this.mContext = context;
+        initAttrs( attrs, defStyleAttr);
+
+        initPaint();
+
+        mCurrentStatus = STATUS_INIT;
+        mCurrentProgress = 0;
+        setOnClickListener(this);
+
     }
 
-    private void init(Context context, AttributeSet attrs, int defStyleAttr) {
-        mContext = context;
+    private void initAttrs(AttributeSet attrs, int defStyleAttr) {
         TypedArray a = getContext().obtainStyledAttributes(attrs,
                 R.styleable.DownLoadProgressBar, defStyleAttr, 0);
-
         for (int i = 0; i < a.getIndexCount(); i++) {
             int attr = a.getIndex(i);
             if (attr == R.styleable.DownLoadProgressBar_progress_max) {
@@ -169,13 +169,6 @@ public class DownLoadProgressBar extends View implements View.OnClickListener {
             }
         }
         a.recycle();
-        initPaint();
-
-        mCurrentStatus = STATUS_INIT;
-        mCurrentProgress = 0;
-
-
-        setOnClickListener(this);
     }
 
     @Override
@@ -183,13 +176,14 @@ public class DownLoadProgressBar extends View implements View.OnClickListener {
         if (mCurrentStatus == STATUS_DOWNLOAD_COMPLETE) {
             // TODO: 2017/3/27 实现下载完成之后的功能
             Toast.makeText(mContext, "点击了控件", Toast.LENGTH_SHORT).show();
-        } else {
-            if (isDownloading) {
-                pause();
-            } else {
-                start();
-            }
         }
+//        else {
+//            if (isDownloading) {
+//                pause();
+//            } else {
+//                start();
+//            }
+//        }
         Log.d(TAG, "onClick: "+mCurrentStatus);
     }
 
@@ -216,7 +210,7 @@ public class DownLoadProgressBar extends View implements View.OnClickListener {
 
 
         mProgressbarPaint = new Paint();
-        mProgressbarPaint.setColor(mOriginColor);
+        mProgressbarPaint.setColor(mChangeColor);
         mProgressbarPaint.setStrokeWidth((float) mTotalHeight);
         mProgressbarPaint.setStyle(Paint.Style.FILL);
         mProgressbarPaint.setAntiAlias(true);
@@ -257,11 +251,19 @@ public class DownLoadProgressBar extends View implements View.OnClickListener {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (mCurrentStatus == STATUS_DOWNLOADING || mCurrentStatus == STATUS_STOP) {
+        if (mCurrentProgress <= 0) {
+            mCurrentStatus = STATUS_INIT;
+        } else if (mCurrentProgress == mMaxProgress) {
+            mCurrentStatus = STATUS_DOWNLOAD_COMPLETE;
+        }  else {
+            mCurrentStatus = STATUS_DOWNLOADING;
+        }
+
+        if (mCurrentStatus == STATUS_DOWNLOADING) {//正在下载 、下载暂停
             int currentWidth = (int) (((float) mCurrentProgress / (float) mMaxProgress) * getWidth());
             drawProgressbar(canvas, 0, currentWidth, mChangeColor, mProgressbarPaint);
             drawProgressbar(canvas, currentWidth, getWidth(), mOriginColor, mProgressbarPaint);
-        } else if (mCurrentStatus == STATUS_INIT) {
+        } else if (mCurrentStatus == STATUS_INIT) {//初始状态
             drawProgressbar(canvas, 0, getWidth(), mOriginColor, mProgressbarPaint);
         } else {
             drawProgressbar(canvas, 0, getWidth(), mChangeColor, mProgressbarPaint);
@@ -270,25 +272,25 @@ public class DownLoadProgressBar extends View implements View.OnClickListener {
     }
 
     private void drawText(Canvas canvas) {
-        //设置不显示文字
+        //设置是否显示文字
         if (!isTextShow) return;
         switch (mCurrentStatus) {
             case STATUS_DOWNLOAD_COMPLETE://下载完成状态
-                mText = mContext.getString(R.string.open);
+                mText = mContext.getString(R.string.download_complete);
                 mTextPaint.setColor(Color.WHITE);
                 break;
             case STATUS_DOWNLOADING://正在下载中
                 mText = String.format(mContext.getString(R.string.downloading),
                         mCurrentProgress * 100 / mMaxProgress);
                 break;
-            case STATUS_OPEN://打开
-                mText = mContext.getString(R.string.open);
-                mTextPaint.setColor(Color.WHITE);
-                break;
-            case STATUS_STOP://暂停下载
-                mText = String.format(mContext.getString(R.string.stop),
-                        mCurrentProgress * 100 / mMaxProgress);
-                break;
+//            case STATUS_OPEN://打开
+//                mText = mContext.getString(R.string.open);
+//                mTextPaint.setColor(Color.WHITE);
+//                break;
+//            case STATUS_STOP://暂停下载
+//                mText = String.format(mContext.getString(R.string.stop),
+//                        mCurrentProgress * 100 / mMaxProgress);
+//                break;
             case STATUS_INIT://初始状态
             default:
                 mText = mContext.getString(R.string.download);
@@ -330,68 +332,13 @@ public class DownLoadProgressBar extends View implements View.OnClickListener {
         canvas.restore();
     }
 
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            invalidate();
-        }
-    };
-
-    public void start() {
-        isDownloading = true;
-        new Thread() {
-            @Override
-            public void run() {
-                super.run();
-                while (isDownloading) {
-                    mCurrentProgress++;
-                    mHandler.sendEmptyMessage(0);
-                    if (mCurrentProgress <= 0) {
-                        mCurrentStatus = STATUS_INIT;
-                    } else if (mCurrentProgress < mMaxProgress) {
-                        mCurrentStatus = STATUS_DOWNLOADING;
-                    } else {
-                        mCurrentStatus = STATUS_DOWNLOAD_COMPLETE;
-                        isDownloading = false;
-                        return;
-                    }
-                    try {
-                        sleep(200);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }.start();
-
-    }
-
-    public void install() {
-
-
-    }
-
-    public void open() {
-
-    }
-
-    public void pause() {
-        isDownloading = false;
-        mCurrentStatus = STATUS_STOP;
-        invalidate();
-    }
 
     public void reset() {
-        isDownloading = false;
         mCurrentProgress = 0;
         mCurrentStatus = STATUS_INIT;
         invalidate();
     }
 
-    public void setOnProgressListener(OnProgressListener onProgressListener) {
-        mOnProgressListener = onProgressListener;
-    }
 
     /**
      * 设置当前的进度
@@ -399,6 +346,7 @@ public class DownLoadProgressBar extends View implements View.OnClickListener {
      */
     public void setProgress(int currentProgress) {
         this.mCurrentProgress = currentProgress;
+        invalidate();
     }
 
     /**

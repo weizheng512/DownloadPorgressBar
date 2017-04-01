@@ -12,14 +12,22 @@
     tools:context="com.fee.downloadporgressbar.MainActivity">
 
     <com.fee.progressbar.DownLoadProgressBar
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/pb_wc"/>
-    <com.fee.progressbar.DownLoadProgressBar
         android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/pb_mp"/>
+    <Button
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:text="start"
+        android:id="@+id/btn_start"
+        android:layout_height="wrap_content"/>
+    <Button
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:text="pause"
+        android:id="@+id/btn_pause"
+        android:layout_height="wrap_content"/>
     <Button
         android:layout_marginTop="10dp"
         android:layout_width="match_parent"
